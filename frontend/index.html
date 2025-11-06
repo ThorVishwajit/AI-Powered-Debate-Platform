@@ -4,292 +4,270 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Debate Platform</title>
-    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/claude-theme.css">
     <link rel="stylesheet" href="styles/layout.css">
     <link rel="stylesheet" href="styles/buttons.css">
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-container">
         <!-- Main Header -->
         <header class="main-header">
             <h1>Debate Platform</h1>
-            <p>AI-Powered Debates</p>
         </header>
 
-        <!-- Lobby Section -->
-        <section id="lobby">
+        <!-- Main Layout -->
+        <div class="main-layout">
             <!-- Active Debates Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <h2>Active Debates</h2>
+                    <button id="newDebateBtn" class="btn small primary">New</button>
                 </div>
-                <div id="debateList">
-                    <div class="debate-list" id="debates"></div>
+                <div class="sidebar-content">
+                    <div class="debate-list" id="debates">
+                        <!-- Debate items will be populated here -->
+                    </div>
                 </div>
             </aside>
 
-            <!-- Create Debate Center Section -->
-            <div class="create-debate-center">
+            <!-- Content Area -->
+            <main class="content-area">
+                <!-- Lobby Section -->
+                <section id="lobby" class="lobby">
+                    <div class="create-debate-form">
+                        <h2 class="form-title">Start a New Debate</h2>
 
-                <div class="form-group">
-                    <label for="participantName">Your Name:</label>
-                    <input type="text" id="participantName" placeholder="Enter your name">
+                        <div class="form-group">
+                            <label for="participantName">Your Name</label>
+                            <input type="text" id="participantName" class="form-control" placeholder="Enter your name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="topic">Debate Topic</label>
+                            <input type="text" id="topic" class="form-control" placeholder="Enter debate topic">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mode">Debate Mode</label>
+                            <div class="select-wrapper">
+                                <select id="mode" class="form-control">
+                                    <option value="human-vs-ai">Human vs AI</option>
+                                    <option value="human-vs-human">Human vs Human</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group difficulty-section" id="difficultyGroup">
+                            <label>Select Difficulty</label>
+                            <div class="difficulty-options">
+                                <div class="difficulty-card" data-difficulty="easy">
+                                    <input type="radio" name="difficulty" id="easy" value="easy">
+                                    <label for="easy">
+                                        <h4>Easy</h4>
+                                        <p>Perfect for beginners</p>
+                                    </label>
+                                </div>
+                                <div class="difficulty-card" data-difficulty="intermediate">
+                                    <input type="radio" name="difficulty" id="intermediate" value="intermediate" checked>
+                                    <label for="intermediate">
+                                        <h4>Intermediate</h4>
+                                        <p>Balanced challenge</p>
+                                    </label>
+                                </div>
+                                <div class="difficulty-card" data-difficulty="hard">
+                                    <input type="radio" name="difficulty" id="hard" value="hard">
+                                    <label for="hard">
+                                        <h4>Hard</h4>
+                                        <p>Expert-level debate</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="submitCreateDebate" class="btn primary w-full">Create Debate</button>
+
+                        <div class="form-actions">
+                            <button id="joinDebateBtn" class="btn secondary">Join Existing Debate</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Join Debate Modal -->
+                <div id="joinModal" class="modal-overlay hidden">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h2>Join Debate</h2>
+                            <button class="modal-close" id="closeJoinModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="joinDebateId">Debate ID</label>
+                                <input type="text" id="joinDebateId" class="form-control" placeholder="Enter debate ID">
+                            </div>
+                            <div class="form-group">
+                                <label for="joinParticipantName">Your Name</label>
+                                <input type="text" id="joinParticipantName" class="form-control" placeholder="Enter your name">
+                            </div>
+                            <div class="form-actions">
+                                <button id="submitJoinDebate" class="btn primary">Join Debate</button>
+                                <button id="cancelJoin" class="btn secondary">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="debate-options">
-                    <button id="createDebateBtn" class="btn primary">Create New Debate</button>
-                    <button id="joinDebateBtn" class="btn secondary">Join Existing Debate</button>
+                <!-- Waiting Area -->
+                <div id="waitingArea" class="waiting-area hidden">
+                    <h3>Waiting for opponent...</h3>
+                    <p>Your debate ID: <strong><span id="currentDebateId"></span></strong></p>
+                    <p>Share this ID with someone to join your debate!</p>
+                    <div class="form-actions">
+                        <button id="leaveWaitingBtn" class="btn secondary">Cancel</button>
+                    </div>
                 </div>
 
-                <div id="createDebateForm" class="hidden">
-                    <h3>Create Debate</h3>
-                    <div class="form-group">
-                        <label for="topic">Debate Topic:</label>
-                        <input type="text" id="topic" placeholder="Enter debate topic">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="mode">Debate Mode:</label>
-                        <select id="mode" class="form-select">
-                            <option value="human-vs-ai">Human vs AI</option>
-                            <option value="human-vs-human">Human vs Human</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group difficulty-section" id="difficultyGroup">
-                        <label for="difficulty">Select Difficulty:</label>
-                        <div class="difficulty-options">
-                            <div class="difficulty-card" data-difficulty="easy">
-                                <input type="radio" name="difficulty" id="easy" value="easy">
-                                <label for="easy">
-                                    <h4>Easy</h4>
-                                    <p>Perfect for beginners</p>
-                                </label>
+                <!-- Debate Room -->
+                <section id="debateRoom" class="debate-room hidden">
+                    <div class="debate-header">
+                        <div class="debate-header-content">
+                            <h2 id="debateTopic">Debate Topic</h2>
+                            <div class="debate-meta">
+                                <span id="debateMode">Mode: </span>
+                                <span id="debateParticipants">Participants: </span>
+                                <span id="debateDifficulty">Difficulty: </span>
                             </div>
-                            <div class="difficulty-card" data-difficulty="intermediate">
-                                <input type="radio" name="difficulty" id="intermediate" value="intermediate" checked>
-                                <label for="intermediate">
-                                    <h4>Intermediate</h4>
-                                    <p>Balanced challenge</p>
-                                </label>
-                            </div>
-                            <div class="difficulty-card" data-difficulty="hard">
-                                <input type="radio" name="difficulty" id="hard" value="hard">
-                                <label for="hard">
-                                    <h4>Hard</h4>
-                                    <p>Expert-level debate</p>
-                                </label>
+                            <div class="debate-actions">
+                                <button id="endDebateBtn" class="btn secondary">End Debate</button>
+                                <button id="leaveDebateBtn" class="btn secondary">Leave Debate</button>
                             </div>
                         </div>
                     </div>
 
-                    <button id="submitCreateDebate" class="btn primary">Create Debate</button>
-                </div>
-
-                <div id="joinDebateForm" class="hidden">
-                    <h3>Join Debate</h3>
-                    <div class="form-group">
-                        <label for="debateId">Debate ID:</label>
-                        <input type="text" id="debateId" placeholder="Enter debate ID">
+                    <div class="messages-container" id="arguments">
+                        <!-- Messages will be populated here -->
                     </div>
 
-                    <button id="submitJoinDebate" class="btn primary">Join Debate</button>
-                </div>
-            </div>
-        </section>
-
-        <main class="main-content">
-            <div id="waitingArea" class="hidden">
-                <h3>Waiting for opponent...</h3>
-                <p>Your debate ID: <span id="currentDebateId"></span></p>
-                <p>Share this ID with someone to join your debate!</p>
-            </div>
-
-            <section id="debateRoom" class="hidden">
-                <div class="chat-header">
-                    <h2 id="debateTopic">Debate Topic</h2>
-                    <p id="debateMode">Mode: </p>
-                    <p id="debateParticipants">Participants: </p>
-                    <div class="header-actions">
-                        <button id="endDebateBtn" class="btn secondary hidden">End Debate</button>
-                        <button id="leaveDebateBtn" class="btn secondary">Leave Debate</button>
+                    <div class="input-area-container">
+                        <div class="input-area">
+                            <textarea id="argumentInput" placeholder="Type your argument here... (Press Enter to send, Shift+Enter for new line)" rows="1"></textarea>
+                            <button id="submitArgument" class="send-button" aria-label="Submit argument">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
-                </div>
-
-                <div class="chat-messages" id="arguments"></div>
-
-                <div class="chat-input-container">
-                    <div class="input-area">
-                        <textarea id="argumentInput" placeholder="Type your argument here... (Press Enter to send)" rows="1"></textarea>
-                        <button id="submitArgument" class="send-button" aria-label="Submit argument">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </section>
-        </main>
+                </section>
+            </main>
+        </div>
     </div>
 
     <!-- Evaluation Modal -->
-    <div id="evaluationModal" class="modal-overlay">
+    <div id="evaluationModal" class="modal-overlay hidden">
         <div class="modal">
             <div class="modal-header">
                 <h2>Debate Evaluation</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" id="closeEvaluationModal">&times;</button>
             </div>
-            <div class="evaluation-content">
-                <div class="participants-evaluation">
-                    <div class="participant-section" id="participant1Evaluation">
-                        <h3 class="participant-name"></h3>
-                        <div class="scores-grid">
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Reasoning</h4>
-                                <div class="score-label">
-                                    <span>Logical Flow</span>
-                                    <span class="score">0%</span>
+            <div class="modal-body">
+                <div class="evaluation-content">
+                    <div class="participants-evaluation">
+                        <div class="participant-section" id="participant1Evaluation">
+                            <h3 class="participant-name"></h3>
+                            <div class="scores-grid">
+                                <div class="evaluation-section">
+                                    <h4 class="evaluation-title">Reasoning</h4>
+                                    <div class="score-label">
+                                        <span>Logical Flow</span>
+                                        <span class="score">0%</span>
+                                    </div>
+                                    <div class="feedback-text"></div>
                                 </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="reasoning"></div>
+                                <div class="evaluation-section">
+                                    <h4 class="evaluation-title">Evidence</h4>
+                                    <div class="score-label">
+                                        <span>Facts & Examples</span>
+                                        <span class="score">0%</span>
+                                    </div>
+                                    <div class="feedback-text"></div>
                                 </div>
-                                <div class="feedback-text"></div>
+                                <div class="evaluation-section">
+                                    <h4 class="evaluation-title">Persuasiveness</h4>
+                                    <div class="score-label">
+                                        <span>Rhetoric & Delivery</span>
+                                        <span class="score">0%</span>
+                                    </div>
+                                    <div class="feedback-text"></div>
+                                </div>
                             </div>
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Evidence</h4>
-                                <div class="score-label">
-                                    <span>Supporting Facts</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="evidence"></div>
-                                </div>
-                                <div class="feedback-text"></div>
+                            <div class="strengths-section">
+                                <h4>Strengths</h4>
+                                <ul class="strengths-list"></ul>
                             </div>
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Persuasiveness</h4>
-                                <div class="score-label">
-                                    <span>Effectiveness</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="persuasiveness"></div>
-                                </div>
-                                <div class="feedback-text"></div>
-                            </div>
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Relevance</h4>
-                                <div class="score-label">
-                                    <span>Topic Focus</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="relevance"></div>
-                                </div>
-                                <div class="feedback-text"></div>
+                            <div class="improvements-section">
+                                <h4>Areas for Improvement</h4>
+                                <ul class="improvements-list"></ul>
                             </div>
                         </div>
-                        <div class="feedback-section">
-                            <div class="strengths">
-                                <h4>Key Strengths</h4>
-                                <ul class="strength-list"></ul>
+                        <div class="participant-section" id="participant2Evaluation">
+                            <h3 class="participant-name"></h3>
+                            <div class="scores-grid">
+                                <div class="evaluation-section">
+                                    <h4 class="evaluation-title">Reasoning</h4>
+                                    <div class="score-label">
+                                        <span>Logical Flow</span>
+                                        <span class="score">0%</span>
+                                    </div>
+                                    <div class="feedback-text"></div>
+                                </div>
+                                <div class="evaluation-section">
+                                    <h4 class="evaluation-title">Evidence</h4>
+                                    <div class="score-label">
+                                        <span>Facts & Examples</span>
+                                        <span class="score">0%</span>
+                                    </div>
+                                    <div class="feedback-text"></div>
+                                </div>
+                                <div class="evaluation-section">
+                                    <h4 class="evaluation-title">Persuasiveness</h4>
+                                    <div class="score-label">
+                                        <span>Rhetoric & Delivery</span>
+                                        <span class="score">0%</span>
+                                    </div>
+                                    <div class="feedback-text"></div>
+                                </div>
                             </div>
-                            <div class="improvements">
+                            <div class="strengths-section">
+                                <h4>Strengths</h4>
+                                <ul class="strengths-list"></ul>
+                            </div>
+                            <div class="improvements-section">
                                 <h4>Areas for Improvement</h4>
-                                <ul class="improvement-list"></ul>
+                                <ul class="improvements-list"></ul>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="participant-section" id="participant2Evaluation">
-                        <!-- Same structure as participant1Evaluation -->
-                        <h3 class="participant-name"></h3>
-                        <div class="scores-grid">
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Reasoning</h4>
-                                <div class="score-label">
-                                    <span>Logical Flow</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="reasoning"></div>
-                                </div>
-                                <div class="feedback-text"></div>
-                            </div>
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Evidence</h4>
-                                <div class="score-label">
-                                    <span>Supporting Facts</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="evidence"></div>
-                                </div>
-                                <div class="feedback-text"></div>
-                            </div>
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Persuasiveness</h4>
-                                <div class="score-label">
-                                    <span>Effectiveness</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="persuasiveness"></div>
-                                </div>
-                                <div class="feedback-text"></div>
-                            </div>
-                            <div class="evaluation-section">
-                                <h4 class="evaluation-title">Relevance</h4>
-                                <div class="score-label">
-                                    <span>Topic Focus</span>
-                                    <span class="score">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" data-category="relevance"></div>
-                                </div>
-                                <div class="feedback-text"></div>
-                            </div>
+                    <div class="overall-evaluation">
+                        <h3>Overall Results</h3>
+                        <div class="winner-section">
+                            <h4>Winner: <span id="winnerName"></span></h4>
+                            <p id="winnerReason"></p>
                         </div>
-                        <div class="feedback-section">
-                            <div class="strengths">
-                                <h4>Key Strengths</h4>
-                                <ul class="strength-list"></ul>
-                            </div>
-                            <div class="improvements">
-                                <h4>Areas for Improvement</h4>
-                                <ul class="improvement-list"></ul>
-                            </div>
+                        <div class="debate-quality">
+                            <h4>Debate Quality: <span id="debateQualityScore">0%</span></h4>
+                            <p id="debateQualitySummary"></p>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="overall-evaluation">
-                    <h3>Overall Assessment</h3>
-                    <div class="debate-quality">
-                        <h4>Debate Quality</h4>
-                        <div class="score-label">
-                            <span>Overall Quality</span>
-                            <span class="score">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="debateQualityProgress"></div>
-                        </div>
-                    </div>
-                    <div class="winner-section">
-                        <div class="winner-card">
-                            <h3 class="winner-title">Debate Winner</h3>
-                            <div class="winner-name" id="winnerName"></div>
-                            <div class="winner-badge">
-                                <svg viewBox="0 0 24 24" class="winner-icon">
-                                    <path d="M12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28z"/>
-                                </svg>
-                            </div>
-                            <p class="winner-reason" id="winnerReason"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>AI is thinking...</p>
         </div>
     </div>
 

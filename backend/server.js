@@ -18,6 +18,7 @@ const debates = new Map();
 
 // NVIDIA API setup
 const { OpenAI } = require("openai");
+const AIService = require("./services/aiService");
 
 const openai = new OpenAI({
   apiKey:
@@ -109,7 +110,12 @@ app.get("/", (req, res) => {
 
 // Create a new debate
 app.post("/api/debates", (req, res) => {
-  const { topic, mode, participantName } = req.body;
+  const {
+    topic,
+    mode,
+    participantName,
+    difficulty = "intermediate",
+  } = req.body;
 
   if (!topic || !mode || !participantName) {
     return res
@@ -122,6 +128,7 @@ app.post("/api/debates", (req, res) => {
     id: debateId,
     topic,
     mode,
+    difficulty, // Store difficulty level for later use in evaluation
     createdAt: new Date(),
     participants: [participantName],
     arguments: [],
@@ -282,41 +289,30 @@ app.post("/api/debates/:id/end", async (req, res) => {
   // Mark debate as ended
   debate.status = "ended";
 
-  // Get final evaluation from AI
-  let finalEvaluation = null;
+  // Get detailed evaluation from AI service
+  let detailedEvaluation = null;
+
   if (debate.arguments.length > 0) {
-    // Prepare arguments summary for AI
-    const argumentsSummary = debate.arguments.map((arg, index) =>
-      `Argument ${index + 1} (${arg.participant}): ${arg.argument}`
-    ).join("\n\n");
-
-    const finalEvaluationPrompt = [
-      {
-        role: "system",
-        content: `You are a debate expert evaluating a completed debate on "${debate.topic}". Summarize the key points from both sides and provide a concise final evaluation (3-4 sentences) in a natural, human-like style. Highlight the strongest arguments from each participant.`,
-      },
-      {
-        role: "user",
-        content: `Here are the arguments from the debate:\n\n${argumentsSummary}\n\nPlease provide your final evaluation.`,
-      },
-    ];
-
-    finalEvaluation = await getAIResponse(finalEvaluationPrompt);
-
-    // Add final evaluation as an argument
-    const finalEvaluationEntry = {
-      id: (Date.now() + 3).toString(),
-      participant: "AI Final Evaluator",
-      argument: finalEvaluation,
-      timestamp: new Date(),
-    };
-
-    debate.arguments.push(finalEvaluationEntry);
+    try {
+      // Get detailed evaluation with scores for each participant
+      detailedEvaluation = await AIService.evaluateArguments(
+        debate.topic,
+        debate.arguments.filter(
+          (arg) => arg.participant !== "AI Final Evaluator",
+        ),
+        debate.difficulty || "intermediate", // Use stored difficulty or default
+      );
+    } catch (error) {
+      console.error("Error getting detailed evaluation:", error);
+      // Don't set detailedEvaluation to null, let it remain undefined
+      // This will cause the response to have detailedEvaluation: undefined
+      // which is better than null for the frontend to handle
+    }
   }
 
   res.json({
     success: true,
-    finalEvaluation,
+    detailedEvaluation,
   });
 });
 
